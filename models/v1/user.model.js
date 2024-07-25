@@ -47,10 +47,43 @@ async function getOneUser(id) {
     }
 }
 
+async function updateUser(id, name, email, password, phone) {
+    try{
+        const user = await prisma.user.update({
+            where: {
+                id
+            },
+            data:{
+                name,
+                email,
+                password,
+                phone
+            },
+        });        
+        return user;
+    }catch (error) {
+        throw error;
+    }
+}
+
+async function deleteUser(id) {
+    try{
+        const user = await prisma.user.delete({
+            where: {
+                id
+            },
+        });        
+        return user;
+    }catch (error) {
+        throw error;
+    }
+}
 
 module.exports = {
     createUser,        
     getAllUsers,
-    getOneUser
+    getOneUser,
+    updateUser,
+    deleteUser
 }
 

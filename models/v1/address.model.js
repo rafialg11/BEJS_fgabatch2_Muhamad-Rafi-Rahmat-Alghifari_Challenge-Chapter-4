@@ -19,7 +19,30 @@ async function createAddress(street, post_code, village, district, city, provinc
     }
 }
 
+async function updateAddress(user_id, street, post_code, village, district, city, province) {
+    try{
+        const address = await prisma.address.update({
+            where: {
+                user_id
+            },
+            data:{
+                street,
+                post_code,
+                village,
+                district,
+                city,
+                province
+            },
+        });        
+        return address;
+    }catch (error) {
+        throw error;
+    }
+}
+
+
 
 module.exports = {
-    createAddress 
+    createAddress,
+    updateAddress
 }

@@ -63,9 +63,57 @@ async function getOneUser(req, res) {
     }
 }
 
+async function updateUser(req, res) {
+    try{
+        const user_id = req.params.id;
+        
+        const { 
+            name, 
+            email, 
+            password, 
+            phone, 
+            birth_date, 
+            birth_place, 
+            gender, 
+            identity_number, 
+            identity_type ,
+            street,
+            post_code,
+            village,
+            district,
+            city,
+            province
+        } = req.body;       
+        
+        const userData = await user.updateUser(user_id, name, email, password, phone);
+        const profileData = await profile.updateProfile(user_id, birth_date, birth_place, gender, identity_number, identity_type);
+        const addressData = await address.updateAddress(user_id, street, post_code, village, district, city, province);
+        
+        const data = {
+            userData,
+            profileData,
+            addressData
+        }
+        return res.status(200).json({message: "User updated successfully", data});
+    }catch(error) {
+        res.status(500).json({message: error.message});
+    }
+}
+
+async function deleteUser(req, res) {
+    try{
+        const user_id = req.params.id;
+        await user.deleteUser(user_id);       
+        return res.status(200).json({message: "User deleted successfully"});
+    }catch(error) {
+        res.status(500).json({message: error.message});
+    }
+}
 
 module.exports = {
     createUser,
     getAllUsers,
-    getOneUser
+    getOneUser,
+    updateUser,
+    deleteUser
 }

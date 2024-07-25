@@ -18,7 +18,27 @@ async function createProfile(birth_date, birth_place, gender, identity_number, i
     }
 }
 
+async function updateProfile(user_id, birth_date, birth_place, gender, identity_number, identity_type) {
+    try{
+        const profile = await prisma.profile.update({
+            where: {
+                user_id
+            },
+            data:{
+                birth_date,
+                birth_place,
+                gender,
+                identity_number,
+                identity_type
+            },
+        });        
+        return profile;
+    }catch (error) {
+        throw error;
+    }
+}
 
 module.exports = {
-    createProfile    
+    createProfile,
+    updateProfile
 }
