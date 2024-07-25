@@ -69,10 +69,27 @@ async function deleteAccount(id) {
     }
 }
 
+async function updateBalance(id, balance) {
+    try{
+        const account = await prisma.bankAccount.update({
+            where: {
+                id
+            },
+            data:{
+                balance
+            },
+        });        
+        return account;
+    }catch (error) {
+        throw error;
+    }
+}
+
 module.exports = {
     createAccount,
     getAllAccounts,
     getOneAccount,
     changePin,
-    deleteAccount
+    deleteAccount, 
+    updateBalance
 }
