@@ -28,7 +28,21 @@ async function getAllTransactions(){
     }
 }
 
+async function getOneTransaction(id) {
+    try{
+        const transaction = await prisma.transaction.findUnique({
+            where: {
+                id
+            }
+        });
+        return transaction;
+    }catch (error) {
+        throw error;
+    }
+}
+
 module.exports = {
     createTransaction,
-    getAllTransactions
+    getAllTransactions,
+    getOneTransaction
 }
