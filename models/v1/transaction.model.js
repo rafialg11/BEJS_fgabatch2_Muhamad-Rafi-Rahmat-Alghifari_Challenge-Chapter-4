@@ -18,6 +18,17 @@ async function createTransaction(amount, date, sender_account_id, receiver_accou
     }
 }
 
+async function getAllTransactions(){
+    try{
+        const transactionData = await prisma.transaction.findMany();
+        return transactionData;
+    }
+    catch(error){
+        throw error;
+    }
+}
+
 module.exports = {
-    createTransaction
+    createTransaction,
+    getAllTransactions
 }

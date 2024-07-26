@@ -11,29 +11,36 @@ async function createTransaction(req, res) {
             transfer_purpose
         } = req.body;
         const date = new Date();
+        //check if all required details are provided
         if(!amount || !sender_account_id || !receiver_account_id) 
         { 
             return res.status(400).json({message: "Please provide all required details"});
         }                
         
+        //check if sender and receiver account exists        
         const senderAccount = await account.getOneAccount(sender_account_id);
         if(!senderAccount) return res.status(400).json({message: "Sender account not found"});
 
         const receiverAccount = await account.getOneAccount(receiver_account_id);
         if(!receiverAccount) return res.status(400).json({message: "Receiver account not found"});
         
-        const newTransaction = await transaction.createTransaction(amount, date, sender_account_id, receiver_account_id, description, transfer_purpose);
+        //check if amount is valid
+        if(amount<0 || amount==0)
+        {
+            return res.status(400).json({message: "Invalid amount"});
+        }     
         
-        const senderBalance = senderAccount.balance - amount;
-        
-        if(senderBalance<0) 
+        if(amount>senderAccount.balance || senderAccount.balance<0) 
         {
             return res.status(400).json({message: "Insufficient balance"});
         }
-        const receiverBalance = receiverAccount.balance + amount;
         
-        await account.updateBalance(sender_account_id, senderBalance);
-        await account.updateBalance(receiver_account_id, receiverBalance);
+        const senderBalanceUpdated = senderAccount.balance - amount;
+        const receiverBalanceUpdated = receiverAccount.balance + amount;
+        
+        const newTransaction = await transaction.createTransaction(amount, date, sender_account_id, receiver_account_id, description, transfer_purpose);            
+        await account.updateBalance(sender_account_id, senderBalanceUpdated);
+        await account.updateBalance(receiver_account_id, receiverBalanceUpdated);
         
         const data = {
             transaction: newTransaction
@@ -44,6 +51,19 @@ async function createTransaction(req, res) {
     }
 }
 
+async function getAllTransactions(req, res) {
+    try{
+        const transactions = await transaction.getAllTransactions();           
+        const data = {
+            transactions,                 
+        }   
+        return res.status(200).json(data);
+    }catch(error) {
+        res.status(500).json({message: error.message});
+    }
+}
+
 module.exports = {
-    createTransaction
+    createTransaction,
+    getAllTransactions
 }
