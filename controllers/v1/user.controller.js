@@ -14,7 +14,7 @@ async function createUser(req, res) {
             birth_place, 
             gender, 
             identity_number, 
-            identity_type ,
+            identity_type,
             street,
             post_code,
             village,
@@ -22,44 +22,72 @@ async function createUser(req, res) {
             city,
             province
         } = req.body;
+        if(!name || !email || !password || !phone) 
+        { 
+            return res.status(400).json({status : "ERROR", message: "Please provide all required details"});
+        }
+
+        const findUser = await user.getOneUser(email);
+        if(findUser) return res.status(400).json({status : "ERROR", message: "User already exists"});
+
+        const findProfile = await profile.getOneProfile(identity_number);
+        if(findProfile) return res.status(400).json({status : "ERROR", message: "Profile already exists"});        
+
         const newUser = await user.createUser(name, email, password, phone);         
         const userId = newUser.id;
         const newProfile = await profile.createProfile(birth_date, birth_place, gender, identity_number, identity_type, userId);
         const newAddress = await address.createAddress(street, post_code, village, district, city, province, userId);
         const data = {
-            user: newUser,
+            user: {
+                id: userId,
+                name: newUser.name,
+                email: newUser.email,                
+                phone: newUser.phone,
+            },
             profile: newProfile,
             address: newAddress
         }
-        res.status(201).json(data); 
+        res.status(201).json({status: "SUCCESS", data}); 
     }catch (error) {
-        res.status(500).json({message: error.message});
+        res.status(500).json({status : "ERROR", message: error.message});
     }
 }
 
 async function getAllUsers(req,res){
     try{
         const users = await user.getAllUsers();           
-        const data = {
-            users,                 
-        }   
-        return res.status(200).json(data);
+        const userData = users.map((user) => {
+                return {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,                
+                    phone: user.phone,                    
+                    profile: user.Profile,
+                    address: user.Address
+                }
+            })                                         
+        return res.status(200).json({status : "SUCCESS", userData});
     }catch(error) {
-        res.status(500).json({message: error.message});
+        res.status(500).json({status : "ERROR", message: error.message});
     }
 }
 
 async function getOneUser(req, res) {
     try{
         const id = req.params.id;
-
-        const userData = await user.getOneUser(id);           
+        const userData = await user.getOneUser(id); 
+        if(!userData) return res.status(400).json({status : "ERROR", message: "User not found"});         
         const data = {
-            user: userData,                 
-        }   
-        return res.status(200).json(data);
+            id: userData.id,
+            name: userData.name,
+            email: userData.email,                
+            phone: userData.phone,
+            profile: userData.Profile,
+            address: userData.Address
+        }
+        return res.status(200).json({status: "SUCCESS", data});
     }catch(error) {
-        res.status(500).json({message: error.message});
+        res.status(500).json({status: "ERROR", message: error.message});
     }
 }
 
@@ -83,20 +111,28 @@ async function updateUser(req, res) {
             district,
             city,
             province
-        } = req.body;       
-        
+        } = req.body;            
+
+        const checkUserData = await user.getOneUser(user_id);
+        if(!checkUserData) return res.status(404).json({status : "ERROR", message: "User not found"});
+
         const userData = await user.updateUser(user_id, name, email, password, phone);
         const profileData = await profile.updateProfile(user_id, birth_date, birth_place, gender, identity_number, identity_type);
         const addressData = await address.updateAddress(user_id, street, post_code, village, district, city, province);
         
         const data = {
-            userData,
+            userData:{
+                id: userData.id,
+                name: userData.name,
+                email: userData.email,                
+                phone: userData.phone,
+            },
             profileData,
             addressData
         }
-        return res.status(200).json({message: "User updated successfully", data});
+        return res.status(200).json({status: "SUCCESS", message: "User updated successfully", data});
     }catch(error) {
-        res.status(500).json({message: error.message});
+        res.status(500).json({status : "ERROR", message: error.message});
     }
 }
 
@@ -105,12 +141,12 @@ async function deleteUser(req, res) {
         const user_id = req.params.id;
 
         const userData = await user.getOneUser(user_id);
-        if(!userData) return res.status(404).json({message: "User not found"});
+        if(!userData) return res.status(404).json({status : "ERROR", message: "User not found"});
 
         await user.deleteUser(user_id);       
-        return res.status(200).json({message: "User deleted successfully"});
+        return res.status(200).json({status: "SUCCESS", message: "User deleted successfully"});
     }catch(error) {
-        res.status(500).json({message: error.message});
+        res.status(500).json({status : "ERROR", message: error.message});
     }
 }
 
